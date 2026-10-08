@@ -1,0 +1,1360 @@
+<!DOCTYPE html>
+<html lang="it">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#0b1020" />
+    <title>Lupus in Fabula</title>
+
+    <style>
+      :root {
+        --card: rgba(22, 28, 52, 0.72);
+        --card-border: rgba(165, 180, 252, 0.18);
+        --text: #eef0ff;
+        --muted: #a3acd1;
+        --accent: #7c83ff;
+        --accent-2: #b38cff;
+        --danger: #ff7a8a;
+        --ok: #5be3a1;
+        --gold: #ffd166;
+        --radius: 20px;
+      }
+
+      * {
+        box-sizing: border-box;
+        -webkit-tap-highlight-color: transparent;
+      }
+
+      html,
+      body {
+        margin: 0;
+        min-height: 100%;
+      }
+
+      body {
+        min-height: 100vh;
+        min-height: 100dvh;
+        font-family: system-ui, -apple-system, 'Segoe UI', Roboto, Arial,
+          sans-serif;
+        color: var(--text);
+        background: #0b1020;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        overflow-x: hidden;
+        transition: color 0.8s;
+      }
+
+      body.day {
+        --card: rgba(255, 247, 230, 0.78);
+        --card-border: rgba(160, 100, 20, 0.25);
+        --text: #2b2113;
+        --muted: #6b5a3c;
+        --accent: #e58a1f;
+        --accent-2: #f2b84b;
+      }
+
+      /* ---------- Sfondo ---------- */
+
+      .bg {
+        position: fixed;
+        inset: 0;
+        z-index: -3;
+        transition: opacity 1.4s ease;
+      }
+
+      .bg-night {
+        background: radial-gradient(
+            ellipse at 20% 0%,
+            #26306b 0%,
+            transparent 55%
+          ),
+          linear-gradient(180deg, #0b1020 0%, #121a3a 60%, #1b1440 100%);
+      }
+
+      .bg-day {
+        background: radial-gradient(
+            ellipse at 80% 0%,
+            #ffe6a8 0%,
+            transparent 55%
+          ),
+          linear-gradient(180deg, #8fd0ff 0%, #cfeaff 55%, #ffe9c4 100%);
+        opacity: 0;
+      }
+
+      body.day .bg-day {
+        opacity: 1;
+      }
+
+      #sky {
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        width: 100%;
+        height: 100%;
+        pointer-events: none;
+      }
+
+      .orb {
+        position: fixed;
+        top: 6vh;
+        right: 8vw;
+        width: 86px;
+        height: 86px;
+        border-radius: 50%;
+        z-index: -2;
+        transition: opacity 1.2s ease, transform 1.2s ease;
+      }
+
+      .moon {
+        background: radial-gradient(circle at 35% 35%, #fffef2, #dfe3ff 60%);
+        box-shadow: 0 0 60px 12px rgba(190, 200, 255, 0.35);
+        animation: float 9s ease-in-out infinite;
+      }
+
+      .moon::after {
+        content: '';
+        position: absolute;
+        width: 20px;
+        height: 20px;
+        border-radius: 50%;
+        background: rgba(120, 130, 190, 0.25);
+        top: 24px;
+        left: 46px;
+        box-shadow: -22px 30px 0 -4px rgba(120, 130, 190, 0.2);
+      }
+
+      .sun {
+        background: radial-gradient(circle at 40% 40%, #fff6c9, #ffc14d 70%);
+        box-shadow: 0 0 80px 20px rgba(255, 190, 60, 0.55);
+        opacity: 0;
+        transform: translateY(40px) scale(0.8);
+        animation: pulse 6s ease-in-out infinite;
+      }
+
+      body.day .moon {
+        opacity: 0;
+        transform: translateY(-40px) scale(0.8);
+      }
+
+      body.day .sun {
+        opacity: 1;
+        transform: none;
+      }
+
+      .fog {
+        position: fixed;
+        z-index: -2;
+        width: 70vw;
+        height: 40vh;
+        border-radius: 50%;
+        filter: blur(70px);
+        opacity: 0.28;
+        background: #6d77ff;
+        pointer-events: none;
+      }
+
+      .fog.a {
+        bottom: -10vh;
+        left: -15vw;
+        animation: drift 26s ease-in-out infinite alternate;
+      }
+
+      .fog.b {
+        bottom: -14vh;
+        right: -20vw;
+        background: #a073ff;
+        animation: drift 32s ease-in-out infinite alternate-reverse;
+      }
+
+      body.day .fog {
+        background: #fff;
+        opacity: 0.5;
+      }
+
+      .forest {
+        position: fixed;
+        left: 0;
+        right: 0;
+        bottom: 0;
+        height: 18vh;
+        z-index: -1;
+        pointer-events: none;
+        opacity: 0.9;
+        transition: opacity 1s;
+      }
+
+      .forest path {
+        fill: #070b1a;
+        transition: fill 1.4s;
+      }
+
+      body.day .forest path {
+        fill: #2f5d3a;
+      }
+
+      /* ---------- Layout ---------- */
+
+      .container {
+        width: 100%;
+        max-width: 520px;
+        padding: 24px 18px 64px;
+      }
+
+      .brand {
+        text-align: center;
+        margin-bottom: 18px;
+      }
+
+      .brand .wolf {
+        font-size: 54px;
+        display: inline-block;
+        animation: float 6s ease-in-out infinite;
+        filter: drop-shadow(0 6px 18px rgba(124, 131, 255, 0.5));
+      }
+
+      .brand h1 {
+        margin: 4px 0 0;
+        font-size: 30px;
+        letter-spacing: 0.5px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+
+      .brand p {
+        margin: 4px 0 0;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .card {
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        border-radius: var(--radius);
+        padding: 26px;
+        box-shadow: 0 18px 50px rgba(0, 0, 0, 0.35);
+        -webkit-backdrop-filter: blur(14px);
+        backdrop-filter: blur(14px);
+        transition: background 0.8s, border-color 0.8s;
+      }
+
+      .screen {
+        display: none;
+      }
+
+      .screen.active {
+        display: block;
+        animation: enter 0.5s cubic-bezier(0.2, 0.8, 0.2, 1);
+      }
+
+      h2 {
+        margin: 0 0 14px;
+        font-size: 18px;
+      }
+
+      label {
+        display: block;
+        font-size: 13px;
+        color: var(--muted);
+        margin-bottom: 6px;
+      }
+
+      input {
+        width: 100%;
+        padding: 14px 16px;
+        border: 1.5px solid var(--card-border);
+        border-radius: 12px;
+        font-size: 16px;
+        color: var(--text);
+        background: rgba(255, 255, 255, 0.07);
+        outline: none;
+        transition: border-color 0.2s, box-shadow 0.2s, background 0.2s;
+      }
+
+      body.day input {
+        background: rgba(255, 255, 255, 0.6);
+      }
+
+      input::placeholder {
+        color: var(--muted);
+        opacity: 0.7;
+      }
+
+      input:focus {
+        border-color: var(--accent);
+        box-shadow: 0 0 0 4px rgba(124, 131, 255, 0.22);
+      }
+
+      .field {
+        margin-bottom: 16px;
+      }
+
+      button {
+        width: 100%;
+        padding: 14px 16px;
+        border: none;
+        border-radius: 12px;
+        font-size: 16px;
+        font-weight: 700;
+        cursor: pointer;
+        color: #fff;
+        transition: transform 0.12s ease, filter 0.2s, opacity 0.2s,
+          box-shadow 0.2s;
+      }
+
+      button:hover:not(:disabled) {
+        filter: brightness(1.1);
+      }
+
+      button:active:not(:disabled) {
+        transform: scale(0.97);
+      }
+
+      button:disabled {
+        opacity: 0.55;
+        cursor: wait;
+      }
+
+      .primary {
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+        box-shadow: 0 8px 24px rgba(124, 131, 255, 0.35);
+      }
+
+      .secondary {
+        background: rgba(255, 255, 255, 0.1);
+        border: 1.5px solid var(--card-border);
+        color: var(--text);
+      }
+
+      body.day .secondary {
+        background: rgba(255, 255, 255, 0.55);
+      }
+
+      .row {
+        display: flex;
+        gap: 10px;
+      }
+
+      .row > * {
+        flex: 1;
+      }
+
+      .join-row {
+        display: flex;
+        gap: 10px;
+      }
+
+      .join-row input {
+        flex: 1.1;
+        text-align: center;
+        letter-spacing: 6px;
+        font-weight: 700;
+        text-transform: uppercase;
+      }
+
+      .join-row button {
+        flex: 1;
+      }
+
+      .or {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        color: var(--muted);
+        font-size: 13px;
+        margin: 20px 0;
+      }
+
+      .or::before,
+      .or::after {
+        content: '';
+        flex: 1;
+        height: 1px;
+        background: var(--card-border);
+      }
+
+      .hidden {
+        display: none !important;
+      }
+
+      .status {
+        text-align: center;
+        min-height: 22px;
+        margin-top: 14px;
+        font-size: 14px;
+        color: var(--muted);
+      }
+
+      .status.error {
+        color: var(--danger);
+      }
+
+      .status.success {
+        color: var(--ok);
+      }
+
+      /* ---------- Lobby ---------- */
+
+      .code-label {
+        text-align: center;
+        color: var(--muted);
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 2px;
+      }
+
+      .room-code {
+        font-size: 52px;
+        font-weight: 800;
+        text-align: center;
+        letter-spacing: 10px;
+        padding-left: 10px;
+        margin: 6px 0 12px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+        animation: pulse 4s ease-in-out infinite;
+      }
+
+      .section-title {
+        display: flex;
+        justify-content: space-between;
+        align-items: baseline;
+        margin: 22px 0 10px;
+      }
+
+      .section-title h2 {
+        margin: 0;
+      }
+
+      .count {
+        color: var(--muted);
+        font-size: 13px;
+      }
+
+      .players {
+        list-style: none;
+        padding: 0;
+        margin: 0 0 18px;
+        display: grid;
+        gap: 8px;
+      }
+
+      .player {
+        display: flex;
+        align-items: center;
+        gap: 12px;
+        padding: 10px 12px;
+        border-radius: 14px;
+        background: rgba(255, 255, 255, 0.07);
+        border: 1px solid var(--card-border);
+        transition: opacity 0.4s, filter 0.4s;
+      }
+
+      body.day .player {
+        background: rgba(255, 255, 255, 0.55);
+      }
+
+      .player.new {
+        animation: pop 0.55s cubic-bezier(0.2, 1.2, 0.3, 1);
+      }
+
+      .player.offline {
+        opacity: 0.45;
+        filter: grayscale(0.8);
+      }
+
+      .avatar {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 800;
+        color: #fff;
+        flex: none;
+        text-shadow: 0 1px 2px rgba(0, 0, 0, 0.35);
+      }
+
+      .pname {
+        flex: 1;
+        font-weight: 600;
+        overflow: hidden;
+        text-overflow: ellipsis;
+        white-space: nowrap;
+      }
+
+      .tag {
+        font-size: 12px;
+        font-weight: 700;
+        padding: 3px 9px;
+        border-radius: 99px;
+      }
+
+      .tag.host {
+        background: rgba(255, 209, 102, 0.18);
+        color: var(--gold);
+      }
+
+      body.day .tag.host {
+        color: #a86b00;
+      }
+
+      .tag.me {
+        background: rgba(124, 131, 255, 0.2);
+        color: var(--accent);
+      }
+
+      .tag.off {
+        background: rgba(255, 122, 138, 0.18);
+        color: var(--danger);
+      }
+
+      .hint {
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .dots span {
+        animation: blink 1.4s infinite both;
+      }
+
+      .dots span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+
+      .dots span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      /* ---------- Partita ---------- */
+
+      .phase {
+        text-align: center;
+        margin: 4px 0 6px;
+      }
+
+      .phase .icon {
+        font-size: 64px;
+        display: inline-block;
+        animation: float 6s ease-in-out infinite;
+      }
+
+      .phase h2 {
+        font-size: 30px;
+        margin: 6px 0 0;
+      }
+
+      .phase .sub {
+        color: var(--muted);
+        margin-top: 4px;
+      }
+
+      /* ---------- Stato connessione ---------- */
+
+      .conn {
+        position: fixed;
+        top: max(12px, env(safe-area-inset-top));
+        left: 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 6px 12px;
+        font-size: 12px;
+        border-radius: 99px;
+        background: var(--card);
+        border: 1px solid var(--card-border);
+        -webkit-backdrop-filter: blur(10px);
+        backdrop-filter: blur(10px);
+        z-index: 5;
+      }
+
+      .conn i {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: var(--muted);
+      }
+
+      .conn.online i {
+        background: var(--ok);
+        box-shadow: 0 0 8px var(--ok);
+      }
+
+      .conn.connecting i {
+        background: var(--gold);
+        animation: blink 1s infinite;
+      }
+
+      .conn.offline i {
+        background: var(--danger);
+      }
+
+      /* ---------- Toast ---------- */
+
+      #toasts {
+        position: fixed;
+        left: 50%;
+        bottom: max(20px, env(safe-area-inset-bottom));
+        transform: translateX(-50%);
+        display: grid;
+        gap: 8px;
+        z-index: 10;
+        width: min(92vw, 420px);
+      }
+
+      .toast {
+        padding: 12px 16px;
+        border-radius: 12px;
+        background: #1b2142;
+        color: #fff;
+        font-size: 14px;
+        text-align: center;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
+        border: 1px solid rgba(255, 255, 255, 0.12);
+        animation: enter 0.35s ease;
+        transition: opacity 0.4s, transform 0.4s;
+      }
+
+      .toast.error {
+        border-color: var(--danger);
+      }
+
+      .toast.success {
+        border-color: var(--ok);
+      }
+
+      .toast.out {
+        opacity: 0;
+        transform: translateY(10px);
+      }
+
+      /* ---------- Animazioni ---------- */
+
+      @keyframes enter {
+        from {
+          opacity: 0;
+          transform: translateY(14px) scale(0.98);
+        }
+        to {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      @keyframes pop {
+        0% {
+          opacity: 0;
+          transform: scale(0.8) translateX(-10px);
+        }
+        100% {
+          opacity: 1;
+          transform: none;
+        }
+      }
+
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-8px);
+        }
+      }
+
+      @keyframes pulse {
+        0%,
+        100% {
+          filter: brightness(1);
+        }
+        50% {
+          filter: brightness(1.18);
+        }
+      }
+
+      @keyframes drift {
+        from {
+          transform: translateX(-4vw);
+        }
+        to {
+          transform: translateX(8vw);
+        }
+      }
+
+      @keyframes blink {
+        0%,
+        80%,
+        100% {
+          opacity: 0.2;
+        }
+        40% {
+          opacity: 1;
+        }
+      }
+
+      @media (max-width: 420px) {
+        .room-code {
+          font-size: 42px;
+          letter-spacing: 8px;
+        }
+        .card {
+          padding: 20px;
+        }
+      }
+
+      @media (prefers-reduced-motion: reduce) {
+        *,
+        *::before,
+        *::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+    </style>
+  </head>
+
+  <body class="night">
+    <div class="bg bg-night"></div>
+    <div class="bg bg-day"></div>
+    <canvas id="sky"></canvas>
+    <div class="orb moon"></div>
+    <div class="orb sun"></div>
+    <div class="fog a"></div>
+    <div class="fog b"></div>
+
+    <svg
+      class="forest"
+      viewBox="0 0 1200 160"
+      preserveAspectRatio="none"
+      aria-hidden="true"
+    >
+      <path
+        d="M0 160V110l30-40 25 30 35-70 30 60 30-30 35 55 40-80 35 70 30-35
+           40 60 35-90 30 70 40-45 35 70 40-60 35 80 30-50 40 75 35-85 35 65
+           30-40 40 70 35-75 35 60 30-35 40 65 35-80 30 70 35-45 40 60 35-70
+           35 80 30-50 40 70 35-60 30 55V160Z"
+      />
+    </svg>
+
+    <div id="conn" class="conn connecting">
+      <i></i><span id="connText">Connessione…</span>
+    </div>
+
+    <div class="container">
+      <div class="brand">
+        <div class="wolf">🐺</div>
+        <h1>Lupus in Fabula</h1>
+        <p>Il villaggio dorme… ma non tutti.</p>
+      </div>
+
+      <!-- HOME -->
+      <section id="homeScreen" class="screen active card">
+        <div class="field">
+          <label for="nameInput">Il tuo nome</label>
+          <input
+            id="nameInput"
+            type="text"
+            placeholder="Es. Giulia"
+            maxlength="20"
+            autocomplete="off"
+          />
+        </div>
+
+        <button id="createButton" class="primary">✨ Crea una stanza</button>
+
+        <div class="or">oppure entra in una stanza</div>
+
+        <div class="join-row">
+          <input
+            id="roomInput"
+            type="text"
+            placeholder="CODICE"
+            maxlength="4"
+            autocomplete="off"
+            autocapitalize="characters"
+            spellcheck="false"
+          />
+          <button id="joinButton" class="secondary">Entra</button>
+        </div>
+
+        <div id="homeStatus" class="status"></div>
+      </section>
+
+      <!-- LOBBY -->
+      <section id="lobbyScreen" class="screen active card hidden">
+        <div class="code-label">Codice della stanza</div>
+        <div id="roomCode" class="room-code">----</div>
+
+        <div class="row">
+          <button id="copyButton" class="secondary">📋 Copia</button>
+          <button id="shareButton" class="secondary hidden">
+            📤 Condividi
+          </button>
+        </div>
+
+        <div class="section-title">
+          <h2>Giocatori</h2>
+          <span id="playerCount" class="count"></span>
+        </div>
+
+        <ul id="lobbyPlayers" class="players"></ul>
+
+        <button id="startButton" class="primary hidden">
+          🌙 Inizia la partita
+        </button>
+
+        <div id="waitHint" class="hint hidden">
+          In attesa che l'host inizi<span class="dots"
+            ><span>.</span><span>.</span><span>.</span></span
+          >
+        </div>
+
+        <div id="lobbyStatus" class="status"></div>
+      </section>
+
+      <!-- PARTITA -->
+      <section id="gameScreen" class="screen active card hidden">
+        <div class="phase">
+          <div id="phaseIcon" class="icon">🌙</div>
+          <h2 id="phaseName">Notte</h2>
+          <div class="sub">
+            Notte numero <strong id="nightNumber">1</strong>
+          </div>
+        </div>
+
+        <div id="gameStatus" class="status"></div>
+
+        <div class="section-title">
+          <h2>Il villaggio</h2>
+          <span id="gameCount" class="count"></span>
+        </div>
+
+        <ul id="gamePlayers" class="players"></ul>
+      </section>
+    </div>
+
+    <div id="toasts"></div>
+
+    <script src="/socket.io/socket.io.js"></script>
+
+    <script>
+      // ======================================================
+      // Identificativo persistente del giocatore
+      // ======================================================
+
+      function randomId() {
+        if (window.crypto && crypto.randomUUID) return crypto.randomUUID();
+        return (
+          Math.random().toString(36).slice(2) +
+          Math.random().toString(36).slice(2) +
+          Date.now().toString(36)
+        );
+      }
+
+      function storeGet(key) {
+        try {
+          return localStorage.getItem(key);
+        } catch (e) {
+          return null;
+        }
+      }
+
+      function storeSet(key, value) {
+        try {
+          localStorage.setItem(key, value);
+        } catch (e) {}
+      }
+
+      function getPlayerId() {
+        let id = storeGet('lupus_player_id');
+        if (!id) {
+          id = randomId();
+          storeSet('lupus_player_id', id);
+        }
+        return id;
+      }
+
+      const playerId = getPlayerId();
+
+      const socket = io({ auth: { playerId } });
+
+      // ======================================================
+      // Elementi
+      // ======================================================
+
+      const $ = (id) => document.getElementById(id);
+
+      const screens = {
+        home: $('homeScreen'),
+        lobby: $('lobbyScreen'),
+        game: $('gameScreen'),
+      };
+
+      const nameInput = $('nameInput');
+      const roomInput = $('roomInput');
+      const createButton = $('createButton');
+      const joinButton = $('joinButton');
+      const startButton = $('startButton');
+      const copyButton = $('copyButton');
+      const shareButton = $('shareButton');
+      const roomCodeEl = $('roomCode');
+      const lobbyPlayers = $('lobbyPlayers');
+      const gamePlayers = $('gamePlayers');
+      const playerCount = $('playerCount');
+      const gameCount = $('gameCount');
+      const waitHint = $('waitHint');
+      const homeStatus = $('homeStatus');
+      const lobbyStatus = $('lobbyStatus');
+      const gameStatus = $('gameStatus');
+      const phaseIcon = $('phaseIcon');
+      const phaseName = $('phaseName');
+      const nightNumber = $('nightNumber');
+      const connEl = $('conn');
+      const connText = $('connText');
+
+      // ======================================================
+      // Stato
+      // ======================================================
+
+      const state = {
+        roomId: null,
+        hostId: null,
+        players: [],
+        inGame: false,
+        restored: false,
+        knownIds: new Set(),
+      };
+
+      nameInput.value = storeGet('lupus_name') || '';
+
+      // ======================================================
+      // Utilità interfaccia
+      // ======================================================
+
+      function showScreen(name) {
+        for (const key of Object.keys(screens)) {
+          const el = screens[key];
+          if (key === name) {
+            if (el.classList.contains('hidden')) {
+              el.classList.remove('hidden');
+              // riavvia l'animazione di entrata
+              el.classList.remove('active');
+              void el.offsetWidth;
+              el.classList.add('active');
+            }
+          } else {
+            el.classList.add('hidden');
+          }
+        }
+      }
+
+      function setStatus(el, message, type) {
+        el.textContent = message || '';
+        el.className = 'status ' + (type || '');
+      }
+
+      function toast(message, type) {
+        const box = document.createElement('div');
+        box.className = 'toast ' + (type || '');
+        box.textContent = message;
+        $('toasts').appendChild(box);
+
+        setTimeout(() => {
+          box.classList.add('out');
+          setTimeout(() => box.remove(), 450);
+        }, 3200);
+      }
+
+      function setBusy(button, busy) {
+        button.disabled = busy;
+      }
+
+      function setConn(kind, text) {
+        connEl.className = 'conn ' + kind;
+        connText.textContent = text;
+      }
+
+      function colorFor(name) {
+        let hash = 0;
+        for (const ch of name) hash = (hash * 31 + ch.charCodeAt(0)) >>> 0;
+        return 'hsl(' + (hash % 360) + ', 62%, 52%)';
+      }
+
+      function renderPlayers(list, players) {
+        list.innerHTML = '';
+
+        for (const player of players) {
+          const li = document.createElement('li');
+          li.className = 'player';
+
+          if (!state.knownIds.has(player.id)) li.classList.add('new');
+          if (player.connected === false) li.classList.add('offline');
+
+          const avatar = document.createElement('div');
+          avatar.className = 'avatar';
+          avatar.style.background = colorFor(player.name);
+          avatar.textContent = (player.name[0] || '?').toUpperCase();
+
+          const name = document.createElement('div');
+          name.className = 'pname';
+          name.textContent = player.name;
+
+          li.appendChild(avatar);
+          li.appendChild(name);
+
+          if (player.id === playerId) addTag(li, 'tu', 'me');
+          if (player.id === state.hostId) addTag(li, '👑 host', 'host');
+          if (player.connected === false) addTag(li, 'offline', 'off');
+
+          list.appendChild(li);
+        }
+      }
+
+      function addTag(li, text, kind) {
+        const tag = document.createElement('span');
+        tag.className = 'tag ' + kind;
+        tag.textContent = text;
+        li.appendChild(tag);
+      }
+
+      function updateRoom(data) {
+        state.roomId = data.roomId;
+        state.hostId = data.hostId;
+        state.players = data.players || [];
+
+        roomCodeEl.textContent = data.roomId;
+
+        renderPlayers(lobbyPlayers, state.players);
+        renderPlayers(gamePlayers, state.players);
+
+        state.knownIds = new Set(state.players.map((p) => p.id));
+
+        const n = state.players.length;
+        const label = n === 1 ? '1 giocatore' : n + ' giocatori';
+
+        playerCount.textContent = label;
+        gameCount.textContent = label;
+
+        const isHost = playerId === state.hostId;
+
+        startButton.classList.toggle('hidden', !isHost);
+        waitHint.classList.toggle('hidden', isHost);
+      }
+
+      function applyPhase(phase, night) {
+        const isDay = phase === 'DAY';
+
+        document.body.classList.toggle('day', isDay);
+        document.body.classList.toggle('night', !isDay);
+
+        phaseIcon.textContent = isDay ? '☀️' : '🌙';
+        phaseName.textContent =
+          phase === 'NIGHT' ? 'Notte' : isDay ? 'Giorno' : phase || '-';
+
+        nightNumber.textContent = night != null ? night : '-';
+
+        setStatus(
+          gameStatus,
+          phase === 'NIGHT'
+            ? 'Il villaggio dorme. È iniziata la prima notte.'
+            : '',
+          'success'
+        );
+      }
+
+      function resetToHome(message) {
+        state.roomId = null;
+        state.hostId = null;
+        state.players = [];
+        state.inGame = false;
+        state.knownIds = new Set();
+
+        document.body.classList.remove('day');
+        document.body.classList.add('night');
+
+        showScreen('home');
+
+        if (message) toast(message, 'error');
+      }
+
+      // ======================================================
+      // Azioni
+      // ======================================================
+
+      function readName() {
+        const name = nameInput.value.trim();
+
+        if (!name) {
+          setStatus(homeStatus, 'Inserisci il tuo nome.', 'error');
+          nameInput.focus();
+          return null;
+        }
+
+        storeSet('lupus_name', name);
+        return name;
+      }
+
+      createButton.addEventListener('click', () => {
+        const name = readName();
+        if (!name) return;
+
+        setStatus(homeStatus, 'Creo la stanza…');
+        setBusy(createButton, true);
+
+        socket.emit('create_room', name, (response) => {
+          setBusy(createButton, false);
+
+          if (!response || !response.success) {
+            setStatus(
+              homeStatus,
+              (response && response.error) || 'Errore durante la creazione.',
+              'error'
+            );
+            return;
+          }
+
+          setStatus(homeStatus, '');
+          state.inGame = false;
+          updateRoom(response);
+          showScreen('lobby');
+          toast('Stanza creata! Condividi il codice.', 'success');
+        });
+      });
+
+      joinButton.addEventListener('click', () => {
+        const name = readName();
+        if (!name) return;
+
+        const room = roomInput.value.trim().toUpperCase();
+
+        if (room.length < 4) {
+          setStatus(homeStatus, 'Inserisci il codice di 4 caratteri.', 'error');
+          roomInput.focus();
+          return;
+        }
+
+        setStatus(homeStatus, 'Entro nella stanza…');
+        setBusy(joinButton, true);
+
+        socket.emit('join_room', room, name, (response) => {
+          setBusy(joinButton, false);
+
+          if (!response || !response.success) {
+            setStatus(
+              homeStatus,
+              (response && response.error) || "Errore durante l'ingresso.",
+              'error'
+            );
+            return;
+          }
+
+          setStatus(homeStatus, '');
+          state.roomId = response.roomId;
+          state.inGame = false;
+          roomCodeEl.textContent = response.roomId;
+          showScreen('lobby');
+          toast('Sei entrato nella stanza.', 'success');
+        });
+      });
+
+      roomInput.addEventListener('input', () => {
+        roomInput.value = roomInput.value
+          .toUpperCase()
+          .replace(/[^A-Z0-9]/g, '');
+      });
+
+      for (const input of [nameInput, roomInput]) {
+        input.addEventListener('keydown', (event) => {
+          if (event.key !== 'Enter') return;
+          (input === roomInput ? joinButton : createButton).click();
+        });
+      }
+
+      startButton.addEventListener('click', () => {
+        if (!state.roomId) return;
+
+        setStatus(lobbyStatus, 'Avvio della partita…');
+        setBusy(startButton, true);
+
+        socket.emit('start_game', state.roomId, (response) => {
+          setBusy(startButton, false);
+
+          if (!response || !response.success) {
+            setStatus(
+              lobbyStatus,
+              (response && response.error) ||
+                'Impossibile iniziare la partita.',
+              'error'
+            );
+          } else {
+            setStatus(lobbyStatus, '');
+          }
+        });
+      });
+
+      copyButton.addEventListener('click', async () => {
+        const code = state.roomId;
+        if (!code) return;
+
+        try {
+          await navigator.clipboard.writeText(code);
+          toast('Codice copiato: ' + code, 'success');
+        } catch (e) {
+          toast('Il codice è ' + code, '');
+        }
+      });
+
+      if (navigator.share) {
+        shareButton.classList.remove('hidden');
+
+        shareButton.addEventListener('click', () => {
+          navigator
+            .share({
+              title: 'Lupus in Fabula',
+              text: 'Entra nella mia partita! Codice stanza: ' + state.roomId,
+              url: location.origin,
+            })
+            .catch(() => {});
+        });
+      }
+
+      // ======================================================
+      // Eventi dal server
+      // ======================================================
+
+      socket.on('room_updated', (data) => {
+        updateRoom(data);
+
+        if (!state.inGame) showScreen('lobby');
+      });
+
+      socket.on('game_started', (data) => {
+        state.inGame = true;
+        applyPhase(data.phase, data.nightNumber);
+        showScreen('game');
+      });
+
+      socket.on('session_restored', (data) => {
+        state.restored = true;
+
+        updateRoom(data);
+
+        if (data.phase && data.phase !== 'LOBBY') {
+          state.inGame = true;
+          applyPhase(data.phase, data.nightNumber);
+          showScreen('game');
+        } else {
+          state.inGame = false;
+          showScreen('lobby');
+        }
+
+        toast('Bentornato! Sei rientrato nella stanza.', 'success');
+      });
+
+      socket.on('connect', () => {
+        setConn('online', 'Online');
+
+        // Se eravamo in una stanza, il server dovrebbe ripristinarla.
+        // Se non lo fa (es. server riavviato), si torna alla home.
+        if (state.roomId) {
+          state.restored = false;
+
+          setTimeout(() => {
+            if (!state.restored && socket.connected && state.roomId) {
+              resetToHome('La stanza non esiste più.');
+            }
+          }, 2500);
+        }
+      });
+
+      socket.on('disconnect', () => {
+        setConn('connecting', 'Riconnessione…');
+      });
+
+      socket.on('connect_error', () => {
+        setConn('offline', 'Server non raggiungibile');
+        setStatus(homeStatus, 'Impossibile connettersi al server.', 'error');
+      });
+
+      // Quando si torna sulla scheda (es. dopo il blocco schermo)
+      // forza un nuovo tentativo se il socket è caduto.
+      document.addEventListener('visibilitychange', () => {
+        if (!document.hidden && !socket.connected) {
+          socket.connect();
+        }
+      });
+
+      // ======================================================
+      // Cielo stellato
+      // ======================================================
+
+      (function sky() {
+        const canvas = $('sky');
+        const ctx = canvas.getContext('2d');
+        const reduce = window.matchMedia(
+          '(prefers-reduced-motion: reduce)'
+        ).matches;
+
+        let stars = [];
+        let alpha = 1;
+        let w = 0;
+        let h = 0;
+
+        function resize() {
+          const ratio = window.devicePixelRatio || 1;
+          w = window.innerWidth;
+          h = window.innerHeight;
+
+          canvas.width = w * ratio;
+          canvas.height = h * ratio;
+          ctx.setTransform(ratio, 0, 0, ratio, 0, 0);
+
+          const count = Math.min(160, Math.floor((w * h) / 9000));
+
+          stars = Array.from({ length: count }, () => ({
+            x: Math.random() * w,
+            y: Math.random() * h * 0.85,
+            r: Math.random() * 1.4 + 0.3,
+            s: Math.random() * 2 + 0.5,
+            p: Math.random() * Math.PI * 2,
+          }));
+        }
+
+        function draw(time) {
+          const target = document.body.classList.contains('day') ? 0 : 1;
+          alpha += (target - alpha) * 0.03;
+
+          ctx.clearRect(0, 0, w, h);
+
+          if (alpha > 0.01) {
+            for (const star of stars) {
+              const twinkle = reduce
+                ? 0.8
+                : 0.55 + 0.45 * Math.sin((time / 1000) * star.s + star.p);
+
+              ctx.globalAlpha = alpha * twinkle;
+              ctx.fillStyle = '#fff';
+              ctx.beginPath();
+              ctx.arc(star.x, star.y, star.r, 0, Math.PI * 2);
+              ctx.fill();
+            }
+          }
+
+          if (!reduce) requestAnimationFrame(draw);
+        }
+
+        window.addEventListener('resize', resize);
+        resize();
+        requestAnimationFrame(draw);
+      })();
+    </script>
+  </body>
+</html>
